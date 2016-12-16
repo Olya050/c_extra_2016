@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Lexeme
+{
+    char word[10];
+    int count;
+};
+
+int lexeme (char *word) // передаем в функцию указатель на строку
+{
+    int count = 0;
+    FILE *Input;
+    if ((Input = fopen("input.txt", "r")) != NULL) // проверка на наличие файла
+    {
+        if (Input != NULL) // проверка на содержимое файла
+        {
+            char s[100];
+            while (fgets(s, sizeof(s), Input)) //считываем пока возможно //fgets(строку, кол-во считываемых символов, область считывания
+            {
+                if (strstr (s, word) != NULL) //ставим указатель на первое вхождение "word"; так программа расчитана на анализ кода, то одна лексема не может встречаться несколько раз в строке
+                    count++;
+            }
+        }
+        fclose(Input);
+    }
+    return count;
+
+}
+void quicksort(struct Lexeme A[], unsigned n)
+{
+    unsigned l = 0, r = n - 1;
+    int x;
+    if (n < 2)
+        return;
+    x = A[n/2].count;
+    while (l <= r)
+    {
+        while (A[l].count > x)
+            l++;
+        while (A[r].count < x)
+            r--;
+        if (l <= r)
+        {
+            struct Lexeme tmp = A[l];
+            A[l] = A[r];
+            A[r] = tmp;
+            l++;
+            r--;
+        }
+    }
+    quicksort(A, r + 1);
+    quicksort(A + l, n - l);
+}
+
+int main()
+{
+    char word[10];
+    int n, i = 0;
+    FILE *lex;
+    if ((lex = fopen("lexeme.txt", "r")) != NULL) //открываем файл с лексемами
+    {
+        fscanf(lex, "%d", &n); //считываем с первой строчки количество лексем
+        struct Lexeme *A = ( struct Lexeme *) malloc(n * sizeof(struct Lexeme));
+        for (i = 0; i < n; i++)
+        {
+            fscanf(lex, "%s", word); //считываем по слову
+            strcpy(A[i].word, word); //копируем "word" в структуру
+            A[i].count = lexeme(word);
+        }
+        quicksort(A, n); //сортируем структуру по кол-ву лексем по убыванию
+        for (i = 0; i < n; i++)
+            printf("%s - %d\n", A[i].word, A[i].count);
+        free(A);
+        fclose(lex);
+    }
+    return 0;
+}
